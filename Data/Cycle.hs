@@ -3,8 +3,6 @@ module Data.Cycle
     , unfold
     , find
     , length
-    , head
-    , tail
     , toList, toList1
     ) where
 
@@ -33,14 +31,6 @@ instance (Eq a) => Eq (Cycle a) where
             where
                 cycleEq' 0 _ _ = False
                 cycleEq' n zs (w:ws) = (zs == (w:ws)) || (cycleEq' (n - 1) zs (ws ++ [w]))
-
-head :: Cycle a -> a
-head (Cycle []) = error "zero-length cycle"
-head (Cycle (z:_)) = z
-
-tail :: Cycle a -> Cycle a
-tail (Cycle []) = error "zero-length cycle"
-tail (Cycle (z:zs)) = Cycle $ zs ++ [z]
 
 toList :: Cycle a -> [a]
 toList (Cycle zs) = cycle zs

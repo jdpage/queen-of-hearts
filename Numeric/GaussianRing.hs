@@ -75,17 +75,17 @@ im' = ix . im
 conjugate :: (Integral a) => Zni a -> Zni a
 conjugate z = re' z -: im' z
 
-magnitude :: (Floating a) => Zni Integer -> a
+magnitude :: (RealFloat a) => Zni Integer -> a
 magnitude z =
     let (Zn _ r) = re z in
     let (Zn _ i) = im z in
     (fromInteger $ r * r + i * i) ** 0.5
 
-argument :: (Floating a) => Zni Integer -> a
+argument :: (RealFloat a) => Zni Integer -> a
 argument z =
     let (Zn _ r) = re z in
     let (Zn _ i) = im z in
-    atan $ (fromInteger $ r) / (fromInteger $ i)
+    atan2 (fromInteger $ r) (fromInteger $ i)
 
 enumerateZni :: (Integral a) => a -> [Zni a]
 enumerateZni n = let ns = [0..(n - 1)] in [makeZni n r i | r <- ns, i <- ns]
