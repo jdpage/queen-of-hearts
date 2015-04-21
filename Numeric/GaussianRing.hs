@@ -18,7 +18,7 @@ module Numeric.GaussianRing
 import Text.Printf
 import Numeric.Ring
 
-data Zn a = Zn a a deriving (Show, Eq)
+data Zn a = Zn a a deriving (Eq)
 
 modulo :: (Integral a) => a -> a -> a
 modulo a b = ((a `mod` b) + b) `mod` b
@@ -40,6 +40,15 @@ instance (Integral a) => Ring a (Zn a) where
 
 data I = I
 type Zni a = Adjoined a (Zn a) I
+
+instance (Show a, Integral a) => Show (Zn a) where
+    show (Zn n r) = printf "%v (mod %v)" (show r) (show n)
+
+instance (Show a, Integral a) => Show (Zni a) where
+    show z =
+        let (Zn n r) = re z in
+        let (Zn _ i) = im z in
+        printf "%v + %vi (mod %v)" (show r) (show i) (show n)
 
 instance Adjoinable I where
     r `apow` p

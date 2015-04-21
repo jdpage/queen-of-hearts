@@ -63,15 +63,15 @@ showNote (Note p i) = do
     let ii = show $ floor (i * 8)
     return $ pp ++ "-" ++ ii
 
-showLine :: [Note] -> Engraver ()
-showLine ns = do
+showLine :: String -> [Note] -> Engraver ()
+showLine s ns = do
     clef Treble
     key $ pickKeySignature ns
-    emitLn $ "\\markup { test }"
     emitLn $ "\\time " ++ (show $ length ns) ++ "/4"
     emitLn "\\repeat volta 2 {"
     notes <- mapM showNote ns
-    emitLn $ unwords [n | n <- notes]
+    emit $ head notes ++ "-\\markup { " ++ s ++ " } "
+    emitLn $ unwords [n | n <- tail notes]
     emitLn "}"
     emitLn $ "\\break"
 
@@ -79,7 +79,12 @@ main :: IO ()
 main = do
     args <- getArgs
     let cs = enumerateAllCycles $ read $ (args !! 0)
+    let lim = read $ args !! 1
     withFile (args !! 2) WriteMode $ engrave $ do
         version "2.18.2"
         part $ do
-            mapM_ showLine [mapCycle c | c <- cs, Cycle.length c >= (read $ args !! 1)]
+            mapM_ (\(text, notes) -> showLine text notes) $ do
+                c <- cs
+                if Cycle.length c < lim then [] else
+                    let cc = constantOf c in
+                    return $ (show cc, mapCycle c)
