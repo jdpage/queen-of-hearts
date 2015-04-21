@@ -2,6 +2,7 @@ module Data.Cycle
     ( Cycle()
     , unfold
     , find
+    , prefix
     , length
     , toList, toList1
     ) where
@@ -20,6 +21,11 @@ find f z = Cycle (find' (unfold f z) [] []) where
         | z `elem` ms2   = []
         | z `elem` ms1   = z : (find' zs ms1 (z:ms2))
         | otherwise      = find' zs (z:ms1) ms2
+
+prefix :: (Eq a) => (a -> a) -> a -> [a]
+prefix f z =
+    let c = toList1 $ find f z in
+    takeWhile (\x -> not $ x `elem` c) $ unfold f z
 
 length :: Cycle a -> Int
 length (Cycle zs) = List.length zs

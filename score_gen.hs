@@ -1,13 +1,14 @@
 import Data.Cycle (Cycle)
 import qualified Data.Cycle as Cycle
 import Data.List
-import Music
-import Music.LilyPond
 import Numeric.GaussianRing
 import System.Environment
-import System.IO
+import Text.Printf
 
-data Note = Note Pitch Float deriving (Show, Eq)
+data Sentence = Sentence Int Float deriving (Eq)
+
+instance Show Sentence where
+    show (Sentence l p) = printf "%d %f" l p
 
 juliaOf :: (Ring x r) => r -> r -> r
 juliaOf c z = (z *: z) +: c
@@ -24,67 +25,29 @@ constantOf zs = let (z:w:_) = Cycle.toList zs in w -: (z *: z)
 enumerateAllCycles :: (Integral a) => a -> [Cycle (Zni a)]
 enumerateAllCycles n = enumerateZni n >>= enumerateCycles
 
-mapPitch :: Pitch -> Zni Integer -> Pitch
-mapPitch (Pitch rel) z = Pitch $ rel + (floor $ magnitude z)
+mapLength :: Zni Integer -> Int
+mapLength = floor . magnitude
 
-mapImportance :: Zni Integer -> Float
-mapImportance z = mi' (argument z) where
-    mi' i
+mapPassion :: Zni Integer -> Float
+mapPassion z = mp' (argument z) where
+    mp' i
         | 0 <= i && i <= (pi / 2)   = 2 * i / pi
         | otherwise                 = error $ "out of range " ++ show i
 
-mapNote :: Pitch -> Zni Integer -> Note
-mapNote rel z = Note (mapPitch rel z) (mapImportance z)
+mapSentence :: Zni Integer -> Sentence
+mapSentence z = Sentence (mapLength z) (mapPassion z)
 
-mapNote' = mapNote $ Pitch 60 -- c'
-
-mapCycle :: Cycle (Zni Integer) -> [Note]
-mapCycle = map mapNote' . Cycle.toList1
-
--- assigns as grade to each key signature as follows:
--- two points for every accidental
--- one point for every sharp/flat in the key signature
-gradeKeySignature :: Key -> [Note] -> Int
-gradeKeySignature key notes = accidentals + (abs $ sharpCount key) where
-    accidentals = sum [1 | (Note p _) <- notes, not $ p `inKey` key]
-
-pickKeySignature :: [Note] -> Key
-pickKeySignature ns =
-    let (key, score) = foldl' f (keyC, worstScore) keys in key where
-        worstScore = 2 * length ns + 7
-        f (bestKey, bestScore) key
-            | score < bestScore    = (key, score)
-            | otherwise            = (bestKey, bestScore)
-            where score = gradeKeySignature key ns
-
-showNote :: Note -> Engraver String
-showNote (Note p i) = do
-    pp <- showPitch p
-    let ii = show $ floor (i * 8)
-    return $ pp ++ "-" ++ ii
-
-showLine :: String -> [Note] -> Engraver ()
-showLine s ns = do
-    clef Treble
-    key $ pickKeySignature ns
-    emitLn $ "\\time " ++ (show $ length ns) ++ "/4"
-    emitLn "\\repeat volta 2 {"
-    notes <- mapM showNote ns
-    emit $ head notes ++ "-\\markup { " ++ s ++ " } "
-    emitLn $ unwords [n | n <- tail notes]
-    emitLn "}"
-    emitLn $ "\\break"
+mapCycle :: Cycle (Zni Integer) -> [Sentence]
+mapCycle = map mapSentence . Cycle.toList1
 
 main :: IO ()
 main = do
     args <- getArgs
     let cs = enumerateAllCycles $ read $ (args !! 0)
     let lim = read $ args !! 1
-    withFile (args !! 2) WriteMode $ engrave $ do
-        version "2.18.2"
-        part $ do
-            mapM_ (\(text, notes) -> showLine text notes) $ do
-                c <- cs
-                if Cycle.length c < lim then [] else
-                    let cc = constantOf c in
-                    return $ (show cc, mapCycle c)
+    mapM_ putStrLn $ do
+        c <- cs
+        if Cycle.length c < lim then [] else do
+            let cc = constantOf c
+            let ss = map show $ mapCycle c
+            return $ (show cc) ++ " " ++ (unwords ss)
