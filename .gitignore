@@ -2,3 +2,6 @@
 *.hi
 *.o
 score_gen
+*.aux
+*.log
+*.synctex.gz
