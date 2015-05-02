@@ -1,7 +1,7 @@
-import Data.Cycle (Cycle)
-import qualified Data.Cycle as Cycle
+import Data.Unfolded.Cycle (Cycle)
+import qualified Data.Unfolded.Cycle as Cycle
 import Data.List
-import Numeric.GaussianRing
+import Numeric.Ring.Finite.Gaussian
 import System.Environment
 import Text.Printf
 
