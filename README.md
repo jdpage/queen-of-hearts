@@ -18,8 +18,8 @@ not to be shown the score in advance, and must rehearse using stale copies.
 
 ## Building
 
-Requires [`unfolded-cycle`](https://github.com/jdpage/unfolded-cycle) and
-[`math-ring`](https://github.com/jdpage/math-ring).
+Requires [`unfolded-cycle 0.1`](https://github.com/jdpage/unfolded-cycle) and
+[`math-ring 0.1`](https://github.com/jdpage/math-ring).
 
 
 ## Copyright
